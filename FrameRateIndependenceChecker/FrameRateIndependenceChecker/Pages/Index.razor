@@ -3,20 +3,19 @@
 @using ChartJs.Blazor.LineChart
 @using ChartJs.Blazor.ScatterChart
 
-<h1>Hello, world!</h1>
+<h1>Frame Rate Independence Checker</h1>
 Welcome to your new app.
 <br />
 <br />
 
-<pre>
+<pre><code>
 public static float Value;
 float Update(float deltaTime){
-</pre>
-<textarea @bind="InputCode"></textarea>
+</code></pre>
+<textarea @bind="InputCode" rows="5" class="md-textarea form-control inputcode"></textarea>
 <br />
-<pre>}</pre>
+<pre><code>}</code></pre>
 <br />
-
 
 
 <button @onclick="TrySomethingOut">go</button>
