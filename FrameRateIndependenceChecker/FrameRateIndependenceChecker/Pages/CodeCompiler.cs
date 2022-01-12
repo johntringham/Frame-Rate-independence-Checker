@@ -13,19 +13,17 @@ using System.Threading.Tasks;
 
 namespace FrameRateIndependenceChecker.Pages
 {
-    public class CodeChecker
+    public class CodeCompiler
     {
         private List<MetadataReference> _references;
         private CSharpCompilation compilation;
 
-        public CodeChecker()
+        public CodeCompiler()
         {
         }
 
-        public async Task Check(string input)
+        public async Task<CompiledSnippet> Compile(string input)
         {
-            //var scriptOptions = new ScriptOptions() { }
-            //var script = CSharpScript.Create(input, );
             Console.WriteLine("eh?: " + input);
 
             try
@@ -38,46 +36,29 @@ namespace FrameRateIndependenceChecker.Pages
                     {
                         Console.WriteLine(e.GetMessage());
                     }
+                    return null;
                 }
                 else
                 {
                     var entryPoint = compilation.GetEntryPoint(CancellationToken.None);
-                    //var t = compilation.GetTypeByMetadataName("MainThing");
-                    //Console.WriteLine(t?.Name);
                     
                     var type = assembly.GetType("MainThing");
-                    var method = type.GetMethod("Main");
-                    var dele = (Func<float>)method.CreateDelegate(typeof(Func<float>));
+                    var method = type.GetMethod("Update");
+                    var updateDelegate = (Action<float>)method.CreateDelegate(typeof(Action<float>));
 
-                    var output = dele.Invoke();
-                    Console.WriteLine(output);
+                    var getValueProperty = type.GetProperty("value");
+                    var getValueDelegate = (Func<float>)(() => (float)getValueProperty.GetValue(null));
 
-                    output = dele.Invoke();
-                    Console.WriteLine(output);
+                    var resetValueDelegate = (Action)(() => getValueProperty.SetValue(null, 0));
 
-                    output = dele.Invoke();
-                    Console.WriteLine(output);
-                    output = dele.Invoke();
-                    Console.WriteLine(output);
-                    output = dele.Invoke();
-                    Console.WriteLine(output);
-                    output = dele.Invoke();
-                    Console.WriteLine(output);
-                    output = dele.Invoke();
-                    Console.WriteLine(output);
-                    output = dele.Invoke();
-                    Console.WriteLine(output);
-                    output = dele.Invoke();
-                    Console.WriteLine(output);
-                    output = dele.Invoke();
-                    Console.WriteLine(output);
+                    return new CompiledSnippet(updateDelegate, getValueDelegate, resetValueDelegate);
                 }
             }
             catch (Exception e)
             {
                 Console.WriteLine("ERROR");
                 Console.WriteLine(e.Message);
-                return;
+                return null;
             }
         }
 
@@ -150,7 +131,5 @@ namespace FrameRateIndependenceChecker.Pages
 
             return false;
         }
-
-        
     }
 }

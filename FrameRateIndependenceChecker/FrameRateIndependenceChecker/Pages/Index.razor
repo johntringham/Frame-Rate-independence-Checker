@@ -6,27 +6,39 @@ Welcome to your new app.
 <br />
 <br />
 
-float Something(){
-<br />
+<pre>
+public static float Value;
+float Update(float deltaTime){
+</pre>
 <textarea @bind="InputCode"></textarea>
 <br />
-}
+<pre>}</pre>
 <br />
+
+
 
 <button @onclick="TrySomethingOut">go</button>
 
 <br />
 
+
+
 @code{
     public string InputCode;
 
-    public CodeChecker codeChecker = new CodeChecker();
+    public CodeCompiler codeChecker = new CodeCompiler();
 
     public async Task TrySomethingOut()
     {
-        var actualCode = "public class MainThing { public static float Main() { return " + InputCode + "; } }";
+        var actualCode = "public class MainThing { public static float value {get;set;}\n public static void Update(float deltaTime) { " + InputCode + "; } }";
         Console.WriteLine("Input:" + actualCode);
-        await codeChecker.Check(actualCode);
+        var snippet = await codeChecker.Compile(actualCode);
+
+        if (snippet != null)
+        {
+            var fpsRunner = new FpsRunner(snippet, 60);
+            fpsRunner.Check(1f);
+        }
     }
 
     protected async override Task OnInitializedAsync()
