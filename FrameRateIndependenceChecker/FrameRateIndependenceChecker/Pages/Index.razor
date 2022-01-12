@@ -2,25 +2,40 @@
 @page "/"
 @using ChartJs.Blazor.LineChart
 @using ChartJs.Blazor.ScatterChart
+@inject IJSRuntime jsRuntime
 
 <h1>Frame Rate Independence Checker</h1>
-Check if your code is actually frame-rate independent.<br />
-                                                      <br />
-Fill in the body of the method below (in C#), and set the <code>value</code> field. Use <code>deltaTime</code> as part of your calculations.<br />
+Check if your code is actually frame-rate independent.
+<br />
+<br />
+Fill in the body of the <code>Update</code> method below (in C#), and set the <code>value</code> field. Use <code>deltaTime</code> as part of your calculations. Some of Unity's Mathf class has been implemented.
+<br />
 When you're ready, press go. More info below.
 <br />
 <br />
 
 <div class="codezone">
-public static float value;<br/>
-public void Update(float deltaTime)<br/>{
+    public static float value;<br />
+    public static void Update(float deltaTime)<br />{
 <textarea @bind="InputCode" rows="5" class="md-textarea form-control inputcode"></textarea>
-}
+    }
 </div>
 
 <br />
 
-<button type="button" class="btn btn-primary btn-lg btn-block" @onclick="TrySomethingOut">Run</button>
+<ul>
+    @foreach (var error in @compilationErrors)
+    {
+        <li>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#ff2912" class="bi bi-exclamation-triangle" viewBox="0 0 16 16">
+                <path d="M7.938 2.016A.13.13 0 0 1 8.002 2a.13.13 0 0 1 .063.016.146.146 0 0 1 .054.057l6.857 11.667c.036.06.035.124.002.183a.163.163 0 0 1-.054.06.116.116 0 0 1-.066.017H1.146a.115.115 0 0 1-.066-.017.163.163 0 0 1-.054-.06.176.176 0 0 1 .002-.183L7.884 2.073a.147.147 0 0 1 .054-.057zm1.044-.45a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566z" />
+                <path d="M7.002 12a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 5.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995z" />
+            </svg> @error
+        </li>
+    }
+</ul>
+
+<button type="button" class="btn btn-primary btn-lg btn-block" @onclick="Run" @ref="runButton">@buttonLabel</button>
 
 <br />
 
@@ -32,9 +47,13 @@ public void Update(float deltaTime)<br/>{
 <br />
 
 
-This page simulates running an update function at different framerates, in order to test how framerate-independant an expression is.<br/><br/>
+This page simulates running an update function at different framerates, in order to test how framerate-independant an expression is.
+<br />
+<br />
 
-To test 30FPS, it goes through and evaluates the function 30 times, passing 1/30 as deltaTime and records the value at each iteration. It then does the same with 60FPS, 90FPS, 144FPS and 240FPS. It then plots the results onto a graph.<br/><br/>
+To test 60FPS, it goes through and evaluates the function 60 times, passing 1/60 as deltaTime and records the value at each iteration. It does the same with 10FPS, 30FPS, 90FPS, 144FPS and 240FPS. It then plots the results onto a graph.
+<br />
+<br />
 
 Ideally, if the code is truely framerate independant, then each iteration will produce the same curve on the graph. If it is not, then the curves will deviate from each other.
 
@@ -58,25 +77,43 @@ C# Compilation code heavily based on <a href="https://www.strathweb.com/2019/06/
         await codeChecker.OnInitializedAsync(navigationManager.BaseUri);
     }
 
-    public async Task TrySomethingOut()
+    [Parameter]
+    public string buttonLabel { get; set; } = "Run";
+
+    public List<string> compilationErrors { get; set; } = new List<string>();
+
+    private ElementReference runButton;
+
+    public async Task Run()
     {
+        buttonLabel = "Compiling...";
         chartConfig.Data.Datasets.Clear();
 
-        var actualCode = "using System; public class MainThing { public static float value {get;set;}\n public static void Update(float deltaTime) { " + InputCode + "; } }";
+        Console.WriteLine("id: " + runButton.Id);
+
+        var actualCode = "public class MainThing { public static float value {get;set;}\n public static void Update(float deltaTime) { " + InputCode + " } }";
         Console.WriteLine("Input:" + actualCode);
-        var snippet = await codeChecker.Compile(actualCode);
+        (var snippet, var errors) = await codeChecker.Compile(actualCode);
+
+        compilationErrors.Clear();
+        compilationErrors.AddRange(errors);
+
+        buttonLabel = "Running...";
 
         if (snippet != null)
         {
-            await TestAndPlot(snippet, 30, 0);
-            await TestAndPlot(snippet, 60, 1);
-            await TestAndPlot(snippet, 90, 2);
-            await TestAndPlot(snippet, 144, 3);
-            await TestAndPlot(snippet, 240, 4);
+            await TestAndPlot(snippet, 10, 0);
+            await TestAndPlot(snippet, 30, 1);
+            await TestAndPlot(snippet, 60, 2);
+            await TestAndPlot(snippet, 90, 3);
+            await TestAndPlot(snippet, 144, 4);
+            await TestAndPlot(snippet, 240, 5);
         }
+
+        buttonLabel = "Run";
     }
 
-    public string[] Colors = new string[] { "rgb(180, 255, 173)", "rgb(255, 246, 158)", "rgb(255, 174, 150)", "rgb(255, 147, 205)", "rgb(211, 158, 255)" };
+    public string[] Colors = new string[] { "rgb(193, 252, 255)", "rgb(180, 255, 173)", "rgb(255, 246, 158)", "rgb(255, 174, 150)", "rgb(255, 147, 205)", "rgb(211, 158, 255)" };
 
     private async Task TestAndPlot(CompiledSnippet snippet, float fps, int ind)
     {

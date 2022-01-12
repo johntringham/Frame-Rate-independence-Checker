@@ -219,3 +219,7 @@ app {
     
 
 }
+
+ul {
+    list-style-type: none;
+}

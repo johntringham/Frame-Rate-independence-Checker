@@ -14,7 +14,24 @@
 </head>
 
 <body>
-    <app>One sec...</app>
+
+    <app>
+        <h1>Frame Rate Independence Checker</h1>
+        Check if your code is actually frame-rate independent.
+        <br />
+        <br />
+        Fill in the body of the method below (in C#), and set the <code>value</code> field. Use <code>deltaTime</code> as part of your calculations. Some of Unity's Mathf class has been implemented.
+        <br />
+        When you're ready, press go. More info below.
+        <br />
+        <br />
+    </app>
+
+    <script>
+        function UpdateButton(label, id) {
+            var button = document.getElementById(id);
+            button.value = label;
+        }</script>
 
     <div id="blazor-error-ui">
         An unhandled error has occurred.
@@ -26,7 +43,7 @@
 
     <!-- This is the glue between Blazor and Chart.js -->
     <script src="_content/ChartJs.Blazor.Fork/ChartJsBlazorInterop.js"></script>
-    
+
 </body>
 
 </html>

@@ -22,21 +22,26 @@ namespace FrameRateIndependenceChecker.Pages
         {
         }
 
-        public async Task<CompiledSnippet> Compile(string input)
+        public async Task<(CompiledSnippet, IEnumerable<string>)> Compile(string input)
         {
             Console.WriteLine("eh?: " + input);
+            input = mathfClassContent + input;
+            List<string> errorMessages;
 
             try
             {
-                var task = TryCompile(input, out var assembly, out var errors);
-                Console.WriteLine("task: " + task);
-                if (!task)
+                Assembly assembly = null;
+                IEnumerable<Diagnostic> errors = null;
+                var task = Task.Run(() => TryCompile(input, out assembly, out errors));
+                if (!(await task))
                 {
                     foreach(var e in errors)
                     {
                         Console.WriteLine(e.GetMessage());
                     }
-                    return null;
+                    errorMessages = errors.Select(e => e.GetMessage()).ToList();
+                    
+                    return (null, errorMessages);
                 }
                 else
                 {
@@ -51,14 +56,14 @@ namespace FrameRateIndependenceChecker.Pages
 
                     var resetValueDelegate = (Action)(() => getValueProperty.SetValue(null, 0));
 
-                    return new CompiledSnippet(updateDelegate, getValueDelegate, resetValueDelegate);
+                    return (new CompiledSnippet(updateDelegate, getValueDelegate, resetValueDelegate), new List<string>());
                 }
             }
             catch (Exception e)
             {
                 Console.WriteLine("ERROR");
                 Console.WriteLine(e.Message);
-                return null;
+                return (null, new List<string>() { "Unexpected error - could not compile for some reason" });
             }
         }
 
@@ -67,7 +72,7 @@ namespace FrameRateIndependenceChecker.Pages
             var refs = AppDomain.CurrentDomain.GetAssemblies();
             var client = new HttpClient
             {
-                BaseAddress = new Uri(/*navigationManager.BaseUri*/ baseUri)
+                BaseAddress = new Uri(baseUri)
             };
 
             var references = new List<MetadataReference>();
@@ -80,9 +85,14 @@ namespace FrameRateIndependenceChecker.Pages
                 references.Add(MetadataReference.CreateFromStream(stream));
             }
 
+            var mathfUri = "Mathf.txt";
+            mathfClassContent = await client.GetStringAsync(mathfUri);
+            
             ////Disabled = false;
             _references = references;
         }
+
+        private string mathfClassContent;
 
         private bool TryCompile(string source, out Assembly assembly, out IEnumerable<Diagnostic> errorDiagnostics)
         {
