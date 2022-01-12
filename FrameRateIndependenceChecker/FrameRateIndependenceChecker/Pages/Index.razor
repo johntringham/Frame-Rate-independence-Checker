@@ -1,0 +1,17 @@
+﻿@page "/"
+
+<h1>Hello, world!</h1>
+Welcome to your new app.
+<br />
+<textarea @bind="InputCode"></textarea>
+<br/>
+<button @onclick="TrySomethingOut">go</button>
+<br/>
+@code{
+    public string InputCode;
+
+    public void TrySomethingOut()
+    {
+        Console.WriteLine(InputCode);
+    }
+}
