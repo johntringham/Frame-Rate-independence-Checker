@@ -25,15 +25,23 @@ namespace FrameRateIndependenceChecker.Pages
 
             var increment = 1.0f / fps;
             var time = 0f;
-            while (time <= duration)
+            try
             {
-                var value = snippet.GetValue();
-                results.Add(time, value);
+                while (time <= duration)
+                {
+                    var value = snippet.GetValue();
+                    results.Add(time, value);
 
-                Console.WriteLine($"{time}: {value}");
-                snippet.Run(increment);
+                    Console.WriteLine($"{time}: {value}");
+                    snippet.Run(increment);
 
-                time += increment;
+                    time += increment;
+                }
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine("Exception:" + e.Message);
+                return new Dictionary<float, float>();
             }
 
             return results;

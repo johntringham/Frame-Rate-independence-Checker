@@ -5,7 +5,7 @@
 @inject IJSRuntime jsRuntime
 
 <h1>Frame Rate Independence Checker</h1>
-Check if your code is actually frame-rate independent.
+Check if your code is actually frame rate independent. Made by <a href="https://twitter.com/zappablamma">John Tringham</a>
 <br />
 <br />
 Fill in the body of the <code>Update</code> method below (in C#), and set the <code>value</code> field. Use <code>deltaTime</code> as part of your calculations. Some of Unity's Mathf class has been implemented.
@@ -51,16 +51,30 @@ This page simulates running an update function at different framerates, in order
 <br />
 <br />
 
-To test 60FPS, it goes through and evaluates the function 60 times, passing 1/60 as deltaTime and records the value at each iteration. It does the same with 10FPS, 30FPS, 90FPS, 144FPS and 240FPS. It then plots the results onto a graph.
+To test 60FPS, it goes through and evaluates the function 60 times, passing 1/60 as <code>deltaTime</code> and records the value at each iteration. It does the same with 10FPS, 30FPS, 90FPS, 144FPS and 240FPS. It then plots the results onto a graph.
 <br />
 <br />
 
 Ideally, if the code is truely framerate independant, then each iteration will produce the same curve on the graph. If it is not, then the curves will deviate from each other.
+<br />
+<br />
+
+Click <a href="https://localhost:44349/#dmFyIGxhbWJkYSA9IDEwZjsKdmFyIHRhcmdldCA9IDEwMGY7CnZhbHVlID0gTWF0aGYuTGVycCh2YWx1ZSwgdGFyZ2V0LCAxIC0gTWF0aGYuRXhwKC1sYW1iZGEgKiBkZWx0YVRpbWUpKTs=" @onclick="GoodExample">here</a> to see an example of a good framerate independant easing function, that uses <a href="https://www.rorydriscoll.com/2016/03/07/frame-rate-independent-damping-using-lerp/">Rory Driscoll's Lambda Decay method</a>. Click <a href="https://localhost:44349/#Ly8gRXhhbXBsZSBvZiBhIGJhZCBlYXNpbmcgZnVuY3Rpb24KdmFyIHNwZWVkID0gMTBmOwp2YXIgdGFyZ2V0ID0gMTAwZjsKdmFsdWUgPSBNYXRoZi5MZXJwKHZhbHVlLCB0YXJnZXQsIHNwZWVkICogZGVsdGFUaW1lKTs=" @onclick="BadExample">here</a> to see a bad example, that uses naive lerping using deltaTime.
+
+<br />
+<br />
 
 C# Compilation code heavily based on <a href="https://www.strathweb.com/2019/06/building-a-c-interactive-shell-in-a-browser-with-blazor-webassembly-and-roslyn/">this article</a> by <a href="https://twitter.com/filip_woj">Filip W</a>. Charts are made using <a href="https://www.nuget.org/packages/ChartJs.Blazor/">ChartJs.Blazor</a>.
+<br />
+<br />
+Made by John Tringham. You can follow me on <a href="https://twitter.com/zappablamma">twitter</a>
+<br />
+<br />
+<br />
+<br />
 
 @code{
-    public string InputCode = "var target = 100;\nvar diff = (target - value);\nvalue += diff* 10 * deltaTime;";
+    public string InputCode = "";
 
     public CodeCompiler codeChecker = new CodeCompiler();
 
@@ -74,7 +88,36 @@ C# Compilation code heavily based on <a href="https://www.strathweb.com/2019/06/
 
     protected async override Task OnInitializedAsync()
     {
+        var url = new Uri(navigationManager.Uri);
+        var end = url.Fragment;
+        Console.WriteLine("Fragment:" + end);
+
+        bool fromUrl = false;
+        if (end != string.Empty && end != "#")
+        {
+            var value = end.Remove(0, 1);
+            var decoded = Base64Decode(value);
+            InputCode = decoded;
+            fromUrl = true;
+        }
+        else
+        {
+            this.InputCode = Base64Decode("Ly8gRXhhbXBsZSBvZiBhIGJhZCBlYXNpbmcgZnVuY3Rpb24KdmFyIHNwZWVkID0gMTBmOwp2YXIgdGFyZ2V0ID0gMTAwZjsKdmFsdWUgPSBNYXRoZi5MZXJwKHZhbHVlLCB0YXJnZXQsIHNwZWVkICogZGVsdGFUaW1lKTs=");
+        }
+
+        buttonLabel = "Compiling...";
+
         await codeChecker.OnInitializedAsync(navigationManager.BaseUri);
+
+        await Run();
+        //if (fromUrl)
+        //{
+        //    await Run();
+        //}
+        //else
+        //{
+        //    await BadExample();
+        //}
     }
 
     [Parameter]
@@ -84,8 +127,16 @@ C# Compilation code heavily based on <a href="https://www.strathweb.com/2019/06/
 
     private ElementReference runButton;
 
+    private bool running = false;
+
     public async Task Run()
     {
+        if (running)
+        {
+            return;
+        }
+
+        running = true;
         buttonLabel = "Compiling...";
         chartConfig.Data.Datasets.Clear();
 
@@ -111,6 +162,26 @@ C# Compilation code heavily based on <a href="https://www.strathweb.com/2019/06/
         }
 
         buttonLabel = "Run";
+
+        running = false;
+        UpdateURL();
+    }
+
+    public void UpdateURL()
+    {
+        navigationManager.NavigateTo($"#{Base64Encode(InputCode)}");
+    }
+
+    public static string Base64Encode(string plainText)
+    {
+        var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(plainText);
+        return System.Convert.ToBase64String(plainTextBytes);
+    }
+
+    public static string Base64Decode(string base64EncodedData)
+    {
+        var base64EncodedBytes = System.Convert.FromBase64String(base64EncodedData);
+        return System.Text.Encoding.UTF8.GetString(base64EncodedBytes);
     }
 
     public string[] Colors = new string[] { "rgb(193, 252, 255)", "rgb(180, 255, 173)", "rgb(255, 246, 158)", "rgb(255, 174, 150)", "rgb(255, 147, 205)", "rgb(211, 158, 255)" };
@@ -138,5 +209,17 @@ C# Compilation code heavily based on <a href="https://www.strathweb.com/2019/06/
         };
 
         chartConfig.Data.Datasets.Add(dataSet);
+    }
+
+    public async Task GoodExample()
+    {
+        this.InputCode = Base64Decode("dmFyIGxhbWJkYSA9IDEwZjsKdmFyIHRhcmdldCA9IDEwMGY7CnZhbHVlID0gTWF0aGYuTGVycCh2YWx1ZSwgdGFyZ2V0LCAxIC0gTWF0aGYuRXhwKC1sYW1iZGEgKiBkZWx0YVRpbWUpKTs=");
+        await this.Run();
+    }
+
+    public async Task BadExample()
+    {
+        this.InputCode = Base64Decode("Ly8gRXhhbXBsZSBvZiBhIGJhZCBlYXNpbmcgZnVuY3Rpb24KdmFyIHNwZWVkID0gMTBmOwp2YXIgdGFyZ2V0ID0gMTAwZjsKdmFsdWUgPSBNYXRoZi5MZXJwKHZhbHVlLCB0YXJnZXQsIHNwZWVkICogZGVsdGFUaW1lKTs=");
+        await this.Run();
     }
 }

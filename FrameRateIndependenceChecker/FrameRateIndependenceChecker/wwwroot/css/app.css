@@ -11,8 +11,13 @@ html, body {
 }
 
 a, .btn-link {
-    color: #0366d6;
+    color: #76b6ff;
 }
+
+    a:hover, .btn-link {
+        color: #76b6ff;
+        text-decoration: underline;
+    }
 
 .btn-primary {
     color: #fff;
