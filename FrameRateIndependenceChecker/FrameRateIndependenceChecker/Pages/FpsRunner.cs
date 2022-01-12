@@ -14,7 +14,7 @@ namespace FrameRateIndependenceChecker.Pages
         {
             this.snippet = snippet;
             this.fps = fps;
-        }
+        } 
 
         public Dictionary<float, float> results = new Dictionary<float, float>();
 
@@ -25,15 +25,15 @@ namespace FrameRateIndependenceChecker.Pages
 
             var increment = 1.0f / fps;
             var time = 0f;
-            while (time < duration)
+            while (time <= duration)
             {
-                time += increment;
-        
-                snippet.Run(increment);
                 var value = snippet.GetValue();
                 results.Add(time, value);
 
                 Console.WriteLine($"{time}: {value}");
+                snippet.Run(increment);
+
+                time += increment;
             }
 
             return results;

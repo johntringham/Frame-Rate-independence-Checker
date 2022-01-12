@@ -104,7 +104,8 @@ namespace FrameRateIndependenceChecker.Pages
                     "System.Linq.Expressions",
                     "System.Net.Http",
                     "System.Text",
-                    "System.Threading.Tasks"
+                    "System.Threading.Tasks",
+                    "System.Math"
                 }
                 )
                 //_previousCompilation

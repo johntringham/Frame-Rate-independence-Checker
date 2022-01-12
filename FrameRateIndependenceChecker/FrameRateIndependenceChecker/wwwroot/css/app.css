@@ -1,8 +1,13 @@
 ﻿@import url('open-iconic/font/css/open-iconic-bootstrap.min.css');
 
+h1 {
+    font-family: 'Fredoka One','Be Vietnam Pro','Helvetica Neue', Helvetica, Arial, sans-serif;
+}
 
 html, body {
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-family: 'Be Vietnam Pro','Helvetica Neue', Helvetica, Arial, sans-serif;
+    background: #282c34;
+    color: #f3ffee;
 }
 
 a, .btn-link {
@@ -185,4 +190,32 @@ app {
         /* Never collapse the sidebar for wide screens */
         display: block;
     }
+}
+
+.codezone {
+    background: #181c24;
+    font-family: 'Source Code Pro', Courier New, Courier, monospace;
+    color: #f1ffde;
+    padding: 20px;
+    border-radius: 10px;
+}
+
+.codezone textarea {
+    background: #282c34;
+    font-family: 'Source Code Pro', Courier New, Courier, monospace;
+    color: #f1ffde;
+    margin-bottom: 0;
+    padding-left: 30px;
+}
+
+.chartzone {
+    background: #181c24;
+    color: #f1ffde;
+    padding: 20px;
+    border-radius: 10px;
+}
+
+.chartjs-render-monitor {
+    
+
 }

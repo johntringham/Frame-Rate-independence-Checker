@@ -4,25 +4,41 @@
 @using ChartJs.Blazor.ScatterChart
 
 <h1>Frame Rate Independence Checker</h1>
-Welcome to your new app.
+Check if your code is actually frame-rate independent.<br />
+                                                      <br />
+Fill in the body of the method below (in C#), and set the <code>value</code> field. Use <code>deltaTime</code> as part of your calculations.<br />
+When you're ready, press go. More info below.
 <br />
 <br />
 
-<pre><code>
-public static float Value;
-float Update(float deltaTime){
-</code></pre>
+<div class="codezone">
+public static float value;<br/>
+public void Update(float deltaTime)<br/>{
 <textarea @bind="InputCode" rows="5" class="md-textarea form-control inputcode"></textarea>
-<br />
-<pre><code>}</code></pre>
-<br />
-
-
-<button @onclick="TrySomethingOut">go</button>
+}
+</div>
 
 <br />
 
-<Chart Config="chartConfig"></Chart>
+<button type="button" class="btn btn-primary btn-lg btn-block" @onclick="TrySomethingOut">Run</button>
+
+<br />
+
+<div class="chartzone">
+    <Chart Config="chartConfig"></Chart>
+</div>
+
+<br />
+<br />
+
+
+This page simulates running an update function at different framerates, in order to test how framerate-independant an expression is.<br/><br/>
+
+To test 30FPS, it goes through and evaluates the function 30 times, passing 1/30 as deltaTime and records the value at each iteration. It then does the same with 60FPS, 90FPS, 144FPS and 240FPS. It then plots the results onto a graph.<br/><br/>
+
+Ideally, if the code is truely framerate independant, then each iteration will produce the same curve on the graph. If it is not, then the curves will deviate from each other.
+
+C# Compilation code heavily based on <a href="https://www.strathweb.com/2019/06/building-a-c-interactive-shell-in-a-browser-with-blazor-webassembly-and-roslyn/">this article</a> by <a href="https://twitter.com/filip_woj">Filip W</a>. Charts are made using <a href="https://www.nuget.org/packages/ChartJs.Blazor/">ChartJs.Blazor</a>.
 
 @code{
     public string InputCode = "var target = 100;\nvar diff = (target - value);\nvalue += diff* 10 * deltaTime;";
@@ -33,15 +49,20 @@ float Update(float deltaTime){
     {
         Options = new LineOptions()
         {
-            Title = new OptionsTitle() { Display = true, Text = "hiiiiiiiiiiii" }
-        }
+            Title = new OptionsTitle() { Display = true, Text = "Results" },
+        },
     };
+
+    protected async override Task OnInitializedAsync()
+    {
+        await codeChecker.OnInitializedAsync(navigationManager.BaseUri);
+    }
 
     public async Task TrySomethingOut()
     {
         chartConfig.Data.Datasets.Clear();
 
-        var actualCode = "public class MainThing { public static float value {get;set;}\n public static void Update(float deltaTime) { " + InputCode + "; } }";
+        var actualCode = "using System; public class MainThing { public static float value {get;set;}\n public static void Update(float deltaTime) { " + InputCode + "; } }";
         Console.WriteLine("Input:" + actualCode);
         var snippet = await codeChecker.Compile(actualCode);
 
@@ -80,10 +101,5 @@ float Update(float deltaTime){
         };
 
         chartConfig.Data.Datasets.Add(dataSet);
-    }
-
-    protected async override Task OnInitializedAsync()
-    {
-        await codeChecker.OnInitializedAsync(navigationManager.BaseUri);
     }
 }
