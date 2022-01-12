@@ -51,7 +51,7 @@ This page simulates running an update function at different framerates, in order
 <br />
 <br />
 
-To test 60FPS, it goes through and evaluates the function 60 times, passing 1/60 as <code>deltaTime</code> and records the value at each iteration. It does the same with 10FPS, 30FPS, 90FPS, 144FPS and 240FPS. It then plots the results onto a graph.
+To test 60FPS, it goes through and evaluates the function 60 times, passing 1/60 as <code>deltaTime</code> and records the value at each iteration. It does the same with 10FPS, 30FPS, 90FPS, 144FPS and 240FPS. The 'Erratic' plot works by using a random frame rate each time (between 10fps and 60fps). It then plots these results onto a graph.
 <br />
 <br />
 
@@ -63,11 +63,22 @@ Click <a href="https://localhost:44349/#dmFyIGxhbWJkYSA9IDEwZjsKdmFyIHRhcmdldCA9
 
 <br />
 <br />
+Once you run a snippet, that code will be saved into the URL, so if you share the full link to someone else they'll see the same graph that you're seeing.
+<br />
+<br />
 
 C# Compilation code heavily based on <a href="https://www.strathweb.com/2019/06/building-a-c-interactive-shell-in-a-browser-with-blazor-webassembly-and-roslyn/">this article</a> by <a href="https://twitter.com/filip_woj">Filip W</a>. Charts are made using <a href="https://www.nuget.org/packages/ChartJs.Blazor/">ChartJs.Blazor</a>.
 <br />
 <br />
 Made by John Tringham. You can follow me on <a href="https://twitter.com/zappablamma">twitter</a>
+
+<br />
+<br />
+
+<small><small><small>Also disclaimer: frame rate independence isn't the most important thing in the world, don't worry about it too much. I made this website to procrastinate working on my game that has frame rate independance issues lol</small></small></small>
+<br />
+<br />
+
 <br />
 <br />
 <br />
@@ -159,6 +170,7 @@ Made by John Tringham. You can follow me on <a href="https://twitter.com/zappabl
             await TestAndPlot(snippet, 90, 3);
             await TestAndPlot(snippet, 144, 4);
             await TestAndPlot(snippet, 240, 5);
+            await TestAndPlot(snippet, 60, 6, true);
         }
 
         buttonLabel = "Run";
@@ -184,19 +196,19 @@ Made by John Tringham. You can follow me on <a href="https://twitter.com/zappabl
         return System.Text.Encoding.UTF8.GetString(base64EncodedBytes);
     }
 
-    public string[] Colors = new string[] { "rgb(193, 252, 255)", "rgb(180, 255, 173)", "rgb(255, 246, 158)", "rgb(255, 174, 150)", "rgb(255, 147, 205)", "rgb(211, 158, 255)" };
+    public string[] Colors = new string[] { "rgb(193, 252, 255)", "rgb(180, 255, 173)", "rgb(255, 246, 158)", "rgb(255, 174, 150)", "rgb(255, 147, 205)", "rgb(211, 158, 255)", "rgb(255, 255, 255)" };
 
-    private async Task TestAndPlot(CompiledSnippet snippet, float fps, int ind)
+    private async Task TestAndPlot(CompiledSnippet snippet, float fps, int ind, bool erratic = false)
     {
         Console.WriteLine(ColorUtil.RandomColorString());
-        var fpsRunner = new FpsRunner(snippet, fps);
+        var fpsRunner = new FpsRunner(snippet, fps, erratic);
         var results = await fpsRunner.Test(1f);
 
         var color = Colors[ind];
 
         var dataSet = new ScatterDataset(results.Select(kvp => new Point(kvp.Key, kvp.Value)))
         {
-            Label = fps + "FPS",
+            Label = erratic ? "Erratic" : fps + "FPS",
             BackgroundColor = color,
             PointBackgroundColor = color,
             BorderColor = color,
