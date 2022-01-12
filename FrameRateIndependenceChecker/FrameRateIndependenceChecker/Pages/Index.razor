@@ -1,17 +1,31 @@
-﻿@page "/"
+﻿@inject NavigationManager navigationManager
+@page "/"
 
 <h1>Hello, world!</h1>
 Welcome to your new app.
 <br />
+
 <textarea @bind="InputCode"></textarea>
-<br/>
+
+<br />
+
 <button @onclick="TrySomethingOut">go</button>
-<br/>
+
+<br />
+
 @code{
     public string InputCode;
 
-    public void TrySomethingOut()
+    public CodeChecker codeChecker = new CodeChecker();
+
+    public async Task TrySomethingOut()
     {
-        Console.WriteLine(InputCode);
+        Console.WriteLine("Input:" + InputCode);
+        await codeChecker.Check(InputCode);
+    }
+
+    protected async override Task OnInitializedAsync()
+    {
+        await codeChecker.OnInitializedAsync(navigationManager.BaseUri);
     }
 }
