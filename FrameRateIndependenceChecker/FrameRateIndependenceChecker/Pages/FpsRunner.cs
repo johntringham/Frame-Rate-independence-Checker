@@ -18,8 +18,9 @@ namespace FrameRateIndependenceChecker.Pages
 
         public Dictionary<float, float> results = new Dictionary<float, float>();
 
-        public async Task Check(float duration)
+        public async Task<Dictionary<float,float>> Test(float duration)
         {
+            results = new Dictionary<float, float>();
             snippet.ResetValue();
 
             var increment = 1.0f / fps;
@@ -34,6 +35,8 @@ namespace FrameRateIndependenceChecker.Pages
 
                 Console.WriteLine($"{time}: {value}");
             }
+
+            return results;
         }
     }
 }

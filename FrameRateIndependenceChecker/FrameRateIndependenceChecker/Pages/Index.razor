@@ -1,5 +1,7 @@
 ﻿@inject NavigationManager navigationManager
 @page "/"
+@using ChartJs.Blazor.LineChart
+@using ChartJs.Blazor.ScatterChart
 
 <h1>Hello, world!</h1>
 Welcome to your new app.
@@ -21,24 +23,64 @@ float Update(float deltaTime){
 
 <br />
 
-
+<Chart Config="chartConfig"></Chart>
 
 @code{
-    public string InputCode;
+    public string InputCode = "var target = 100;\nvar diff = (target - value);\nvalue += diff* 10 * deltaTime;";
 
     public CodeCompiler codeChecker = new CodeCompiler();
 
+    private ScatterConfig chartConfig = new ScatterConfig()
+    {
+        Options = new LineOptions()
+        {
+            Title = new OptionsTitle() { Display = true, Text = "hiiiiiiiiiiii" }
+        }
+    };
+
     public async Task TrySomethingOut()
     {
+        chartConfig.Data.Datasets.Clear();
+
         var actualCode = "public class MainThing { public static float value {get;set;}\n public static void Update(float deltaTime) { " + InputCode + "; } }";
         Console.WriteLine("Input:" + actualCode);
         var snippet = await codeChecker.Compile(actualCode);
 
         if (snippet != null)
         {
-            var fpsRunner = new FpsRunner(snippet, 60);
-            fpsRunner.Check(1f);
+            await TestAndPlot(snippet, 30, 0);
+            await TestAndPlot(snippet, 60, 1);
+            await TestAndPlot(snippet, 90, 2);
+            await TestAndPlot(snippet, 144, 3);
+            await TestAndPlot(snippet, 240, 4);
         }
+    }
+
+    public string[] Colors = new string[] { "rgb(180, 255, 173)", "rgb(255, 246, 158)", "rgb(255, 174, 150)", "rgb(255, 147, 205)", "rgb(211, 158, 255)" };
+
+    private async Task TestAndPlot(CompiledSnippet snippet, float fps, int ind)
+    {
+        Console.WriteLine(ColorUtil.RandomColorString());
+        var fpsRunner = new FpsRunner(snippet, fps);
+        var results = await fpsRunner.Test(1f);
+
+        var color = Colors[ind];
+
+        var dataSet = new ScatterDataset(results.Select(kvp => new Point(kvp.Key, kvp.Value)))
+        {
+            Label = fps + "FPS",
+            BackgroundColor = color,
+            PointBackgroundColor = color,
+            BorderColor = color,
+            PointBorderColor = color,
+            PointHoverBackgroundColor = color,
+
+            ShowLine = true,
+
+            Fill = false
+        };
+
+        chartConfig.Data.Datasets.Add(dataSet);
     }
 
     protected async override Task OnInitializedAsync()
