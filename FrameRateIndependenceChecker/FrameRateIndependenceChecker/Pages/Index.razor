@@ -4,9 +4,13 @@
 <h1>Hello, world!</h1>
 Welcome to your new app.
 <br />
+<br />
 
+float Something(){
+<br />
 <textarea @bind="InputCode"></textarea>
-
+<br />
+}
 <br />
 
 <button @onclick="TrySomethingOut">go</button>
@@ -20,8 +24,9 @@ Welcome to your new app.
 
     public async Task TrySomethingOut()
     {
-        Console.WriteLine("Input:" + InputCode);
-        await codeChecker.Check(InputCode);
+        var actualCode = "public class MainThing { public static float Main() { return " + InputCode + "; } }";
+        Console.WriteLine("Input:" + actualCode);
+        await codeChecker.Check(actualCode);
     }
 
     protected async override Task OnInitializedAsync()

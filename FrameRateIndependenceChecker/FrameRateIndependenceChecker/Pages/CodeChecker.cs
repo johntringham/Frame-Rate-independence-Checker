@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace FrameRateIndependenceChecker.Pages
@@ -15,6 +16,7 @@ namespace FrameRateIndependenceChecker.Pages
     public class CodeChecker
     {
         private List<MetadataReference> _references;
+        private CSharpCompilation compilation;
 
         public CodeChecker()
         {
@@ -37,12 +39,43 @@ namespace FrameRateIndependenceChecker.Pages
                         Console.WriteLine(e.GetMessage());
                     }
                 }
-                //if (task)
-                //{
-                //}
+                else
+                {
+                    var entryPoint = compilation.GetEntryPoint(CancellationToken.None);
+                    //var t = compilation.GetTypeByMetadataName("MainThing");
+                    //Console.WriteLine(t?.Name);
+                    
+                    var type = assembly.GetType("MainThing");
+                    var method = type.GetMethod("Main");
+                    var dele = (Func<float>)method.CreateDelegate(typeof(Func<float>));
+
+                    var output = dele.Invoke();
+                    Console.WriteLine(output);
+
+                    output = dele.Invoke();
+                    Console.WriteLine(output);
+
+                    output = dele.Invoke();
+                    Console.WriteLine(output);
+                    output = dele.Invoke();
+                    Console.WriteLine(output);
+                    output = dele.Invoke();
+                    Console.WriteLine(output);
+                    output = dele.Invoke();
+                    Console.WriteLine(output);
+                    output = dele.Invoke();
+                    Console.WriteLine(output);
+                    output = dele.Invoke();
+                    Console.WriteLine(output);
+                    output = dele.Invoke();
+                    Console.WriteLine(output);
+                    output = dele.Invoke();
+                    Console.WriteLine(output);
+                }
             }
             catch (Exception e)
             {
+                Console.WriteLine("ERROR");
                 Console.WriteLine(e.Message);
                 return;
             }
@@ -73,9 +106,9 @@ namespace FrameRateIndependenceChecker.Pages
         private bool TryCompile(string source, out Assembly assembly, out IEnumerable<Diagnostic> errorDiagnostics)
         {
             assembly = null;
-            var scriptCompilation = CSharpCompilation.CreateScriptCompilation(
+            var scriptCompilation = CSharpCompilation.Create(
                 Path.GetRandomFileName(),
-                CSharpSyntaxTree.ParseText(source, CSharpParseOptions.Default.WithKind(SourceCodeKind.Script).WithLanguageVersion(LanguageVersion.Preview)),
+                new[] { CSharpSyntaxTree.ParseText(source, CSharpParseOptions.Default.WithKind(SourceCodeKind.Regular).WithLanguageVersion(LanguageVersion.Preview)) },
                 _references,
                 new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary
                 , usings: new[]
@@ -109,7 +142,7 @@ namespace FrameRateIndependenceChecker.Pages
                 if (emitResult.Success)
                 {
                     //_submissionIndex++;
-                    //_previousCompilation = scriptCompilation;
+                    compilation = scriptCompilation;
                     assembly = Assembly.Load(peStream.ToArray());
                     return true;
                 }
